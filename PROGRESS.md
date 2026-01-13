@@ -3,7 +3,7 @@
 ## Project Overview
 Two parallel tracks to evolve the platform:
 - **Gen 1**: Video canvas placement via React (extends catalogue system) - **COMPLETE**
-- **Gen 2**: Unity Bridge architecture (thin client, platform-handled services) - PENDING
+- **Gen 2**: Unity Bridge architecture (thin client, platform-handled services) - **COMPLETE**
 
 ---
 
@@ -32,13 +32,34 @@ Two parallel tracks to evolve the platform:
 
 ---
 
-## Gen 2: Unity Bridge Architecture - PENDING
+## Gen 2: Unity Bridge Architecture - COMPLETE
 
-### Pending
-- [ ] Create ActorService.js
-- [ ] Create NetworkService.js
-- [ ] Create ContentService.js
-- [ ] Create SpacesBridge.cs (Unity)
+### React Platform Services (`ReactSpacesMonoRepo`)
+- [x] **ActorService.js** - Player/actor state management
+  - Join/leave space instances
+  - Real-time position/rotation/animation sync
+  - Voice state tracking
+  - Firebase Realtime Database for low-latency updates
+- [x] **NetworkService.js** - Networking and RPC service
+  - Event broadcasting to all/specific actors
+  - Connection state management
+  - Ownership request/transfer
+  - Custom event handlers
+- [x] **ContentService.js** - Networked object management
+  - Spawn/despawn objects
+  - Object ownership (distributed authority)
+  - Transform and state sync
+  - Object type filtering
+
+### Unity Bridge (`spaces-unity-sdk`)
+- [x] **SpacesBridge.cs** - Main entry point for thin client
+  - Receives state from React, renders in Unity
+  - Remote actor interpolation
+  - Networked object management
+  - Input capture and forwarding to React
+- [x] **BridgeData.cs** - Data classes for bridge events
+- [x] **BridgeRaiseEvent.cs** - Sends events from Unity to React
+- [x] **ReactIncomingEvent.cs** - Added bridge event handlers
 
 ---
 
@@ -48,65 +69,77 @@ Two parallel tracks to evolve the platform:
 1. `packages/webgl/src/components/VideoCanvasEditor.jsx`
 2. `packages/webgl/src/hooks/unityEvents/useVideoCanvasItems.js`
 3. `packages/webgl/src/hooks/unityEvents/usePlaceVideoCanvas.js`
+4. `packages/shared/src/services/ActorService.js`
+5. `packages/shared/src/services/NetworkService.js`
+6. `packages/shared/src/services/ContentService.js`
 
 ### Unity (`spaces-unity-sdk`)
 1. `Runtime/React/EventsManagement/DataClasses/VideoCanvasData.cs`
 2. `Runtime/React/MonoBehaviours/IncomingEvents/VideoCanvasRenderer.cs`
-3. `Runtime/React/EventsManagement/ReactIncomingEvent.cs` (modified)
+3. `Runtime/Bridge/SpacesBridge.cs`
+4. `Runtime/Bridge/BridgeData.cs`
+5. `Runtime/Bridge/BridgeRaiseEvent.cs`
+6. `Runtime/React/EventsManagement/ReactIncomingEvent.cs` (modified)
 
 ---
 
-## Firebase Schema
+## Architecture
 
-Video canvas items stored in `spaces/{spaceId}/catalogue/{canvasId}`:
-
-```javascript
-{
-  type: "video_canvas",           // Required: identifies as video canvas
-  canvasId: string,               // Unique identifier
-  videoUrl: string,               // YouTube/Vimeo/direct/HLS URL
-  videoType: "youtube" | "vimeo" | "direct" | "hls",
-  aspectRatio: "16:9" | "4:3" | "1:1" | "9:16",
-  autoplay: boolean,
-  loop: boolean,
-  muted: boolean,
-  position: { x: number, y: number, z: number },
-  rotation: { x: number, y: number, z: number },
-  scale: { x: number, y: number, z: number },
-  createdAt: number,
-  updatedAt: number
-}
-```
-
----
-
-## Unity Events
-
-### React → Unity
-- `PlaceVideoCanvas` - Create new video canvas in scene
-- `UpdateVideoCanvas` - Update transform and video settings
-- `DeleteVideoCanvas` - Remove video canvas from scene
-
-### Unity → React
-- `VideoCanvasClicked` - User clicked on video canvas
-
----
-
-## Architecture Notes
-
-### Gen 1 Pattern
+### Gen 1 Pattern (Video Canvas)
 React owns the data, Unity renders:
 ```
 React (VideoCanvasEditor) → Firebase (catalogue) → Unity (VideoCanvasRenderer)
                          ← onSnapshot() ←
 ```
 
-### Gen 2 Target (Spatial.io-like)
+### Gen 2 Pattern (Unity Bridge - like Spatial.io)
 Platform handles services, Unity is thin client:
 ```
-React Services (Actor, Network, Content) → Firebase → Unity Bridge
-                                        ← Real-time sync ←
+┌─────────────────────────────────────────────────────────────────┐
+│                         React Layer                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ ActorService│  │NetworkService│  │ContentService│             │
+│  │ (players)   │  │ (sync/RPCs) │  │ (objects)   │             │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘             │
+│         └────────────────┼────────────────┘                      │
+│                          ▼                                       │
+│                   Firebase Realtime DB                           │
+│                          │                                       │
+└──────────────────────────┼──────────────────────────────────────┘
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                      Unity Bridge                                │
+│  - Receives state updates from React                             │
+│  - Sends user input/actions to React                             │
+│  - Renders scene based on state                                  │
+│  - NO networking code (Photon/etc)                               │
+│  - NO game logic (handled by React services)                     │
+└──────────────────────────────────────────────────────────────────┘
 ```
+
+**Unity Responsibilities (thin client):**
+- 3D rendering
+- Local physics (collision detection)
+- User input capture
+- Animation playback
+- Audio playback
+
+**Platform Responsibilities (React/Firebase):**
+- Player state sync
+- Object ownership
+- Matchmaking
+- RPCs/events
+- Voice/text chat
+- Persistence
+
+---
+
+## GitHub Repositories
+
+- **Monorepo**: https://github.com/danielctc/dan-spaces
+- **Unity SDK**: https://github.com/danielctc/spaces-unity-sdk
+- **React Bridge**: https://github.com/danielctc/ReactSpacesMonoRepo
+- **Website**: https://github.com/danielctc/spaces-website
 
 ---
 
