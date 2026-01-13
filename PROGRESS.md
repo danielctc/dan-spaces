@@ -134,6 +134,37 @@ Platform handles services, Unity is thin client:
 
 ---
 
+## Phase 3: Code Refactoring - IN PROGRESS
+
+### Completed
+- [x] **Fixed Logger.log** - Was broken (no output), now properly logs
+- [x] **ReactIncomingEvent.cs Registry Pattern** - Replaced 270-line switch with handler registry
+  - `RegisterHandler<T>(eventName, handler)` for typed handlers
+  - `UnregisterHandler(eventName)` for cleanup
+  - Dictionary lookup instead of switch statement
+  - Backward compatible with legacy events
+- [x] **useUnityMessaging.js** - Centralised Unity communication hook
+  - `isReady` state for Unity availability
+  - `sendMessage(gameObject, method, value)` for GameObject messages
+  - `sendEvent(eventName, data)` for ReactIncomingEvent
+  - `disableInput(source)` / `enableInput(source)` for modal input handling
+
+### Pending
+- [ ] Extract hardcoded values to constants in Unity SDK
+- [ ] Break up SpaceManageModal.jsx (2,594 lines → 8-10 components)
+- [ ] Migrate remaining `window.unityInstance` usages to `useUnityMessaging`
+
+### Files Modified/Created
+
+**React:**
+- `packages/shared/logging/react-log.js` (fixed)
+- `packages/webgl/src/hooks/useUnityMessaging.js` (new)
+
+**Unity:**
+- `Runtime/React/EventsManagement/ReactIncomingEvent.cs` (refactored)
+
+---
+
 ## GitHub Repositories
 
 - **Monorepo**: https://github.com/danielctc/dan-spaces
