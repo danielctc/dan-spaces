@@ -1,9 +1,9 @@
 [submodule "unity-sdk"]
 	path = unity-sdk
-	url = https://github.com/spacesmetaverse/spaces-unity-sdk.git
+	url = https://github.com/danielctc/spaces-unity-sdk.git
 [submodule "react-bridge"]
 	path = react-bridge
-	url = https://github.com/spacesmetaverse/ReactSpacesMonoRepo.git
+	url = https://github.com/danielctc/ReactSpacesMonoRepo.git
 [submodule "website"]
 	path = website
-	url = https://github.com/spacesmetaverse/spaces-website.git
+	url = https://github.com/danielctc/spaces-website.git
